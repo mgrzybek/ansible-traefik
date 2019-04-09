@@ -1,0 +1,20 @@
+# {{ ansible_managed }}
+[Unit]
+Description=Træfik, a modern reverse proxy
+Documentation=https://traefik.io/
+After=network.target
+
+[Service]
+Environment=GOMAXPROCS=2
+Restart=on-failure
+KillSignal=SIGTERM
+
+ExecStart={{ traefik_install_prefix }}/traefik -c {{ traefik_conf_file }}
+
+{% if traefik_user != 'root' %}
+User={{ traefik_user }}
+{% endif %}
+
+[Install]
+WantedBy=multi-user.target
+

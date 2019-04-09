@@ -1,0 +1,205 @@
+################################################################
+# Entry points
+################################################################
+defaultEntryPoints = {{ traefik_entry_points | to_json }}
+
+[entryPoints]
+  [entryPoints.http]
+  address = ":{{ traefik_http_port }}"
+
+{% if traefik_http_redirect | lower == 'true' %}
+    [entryPoints.http.redirect]
+      entryPoint = "https"
+
+{% endif %}
+{% if 'https' in traefik_entry_points %}
+  [entryPoints.https]
+  address = ":{{ traefik_https_port }}"
+    [entryPoints.https.tls]
+{% if traefik_https_tls_certificates is defined %}
+{% for item in traefik_https_tls_certificates %}
+      [[entryPoints.https.tls.certificates]]
+      certFile = "{{ traefik_cert_directory }}/{{ item.cert_file }}"
+      keyFile = "{{ traefik_cert_directory }}/{{ item.key_file }}"
+{% endfor %}
+{% endif %}
+{% endif %}
+
+################################################################
+# Logs
+################################################################
+[traefikLog]
+format   = "json"
+
+[accessLog]
+format = "json"
+
+################################################################
+# API
+################################################################
+[api]
+  # Name of the related entry point
+  #
+  # Optional
+  # Default: "traefik"
+  #
+  entryPoint = "{{ traefik_api_entrypoint }}"
+
+  # Enabled Dashboard
+  #
+  # Optional
+  # Default: true
+  #
+  dashboard = true
+
+  # Enable debug mode.
+  # This will install HTTP handlers to expose Go expvars under /debug/vars and
+  # pprof profiling data under /debug/pprof.
+  # Additionally, the log level will be set to DEBUG.
+  #
+  # Optional
+  # Default: false
+  #
+  debug = false
+
+################################################################
+# Consul Catalog Provider
+################################################################
+
+# Enable Consul Catalog Provider.
+[consulCatalog]
+  # Consul server endpoint.
+  #
+  # Required
+  # Default: "127.0.0.1:8500"
+  #
+  endpoint = "127.0.0.1:8500"
+
+  # Expose Consul catalog services by default in Traefik.
+  #
+  # Optional
+  # Default: true
+  #
+  exposedByDefault = false
+
+  # Default domain used.
+  #
+  # Optional
+  #
+  domain = "{{ traefik_domain_name }}"
+
+  # Prefix for Consul catalog tags.
+  #
+  # Optional
+  # Default: "traefik"
+  #
+  prefix = "traefik"
+
+  # Default frontEnd Rule for Consul services.
+  #
+  # The format is a Go Template with:
+  # - ".ServiceName", ".Domain" and ".Attributes" available
+  # - "getTag(name, tags, defaultValue)", "hasTag(name, tags)" and "getAttribute(name, tags, defaultValue)" functions are available
+  # - "getAttribute(...)" function uses prefixed tag names based on "prefix" value
+  #
+  # Optional
+  # Default: "Host:{{ '{{' }}.ServiceName{{ '}}' }}.{{ '{{' }}.Domain{{ '}}' }}"
+  #
+  #frontEndRule = "Host:{{ '{{' }}.ServiceName{{ '}}' }}.{{ '{{' }}.Domain{{ '}}' }}"
+
+  # Enable Consul catalog TLS connection.
+  #
+  # Optional
+  #
+  #    [consulCatalog.tls]
+  #    ca = "/etc/ssl/ca.crt"
+  #    cert = "/etc/ssl/consul.crt"
+  #    key = "/etc/ssl/consul.key"
+  #    insecureSkipVerify = true
+
+  # Override default configuration template.
+  # For advanced users :)
+  #
+  # Optional
+  #
+  # filename = "consulcatalog.tmpl"
+
+  # Override template version
+  # For advanced users :)
+  #
+  # Optional
+  # - "1": previous template version (must be used only with older custom templates, see "filename")
+  # - "2": current template version (must be used to force template version when "filename" is used)
+  #
+  # templateVersion = 2
+
+################################################################
+# Consul KV Provider
+################################################################
+
+# Enable Consul KV Provider.
+#[consul]
+
+# Consul server endpoint.
+#
+# Required
+# Default: "127.0.0.1:8500"
+#
+#endpoint = "127.0.0.1:8500"
+
+# Enable watch Consul changes.
+#
+# Optional
+# Default: true
+#
+#watch = true
+
+# Prefix used for KV store.
+#
+# Optional
+# Default: traefik
+#
+#prefix = "traefik"
+
+# Override default configuration template.
+# For advanced users :)
+#
+# Optional
+#
+# filename = "consul.tmpl"
+
+# Use Consul user/pass authentication.
+#
+# Optional
+#
+# username = foo
+# password = bar
+
+# Enable Consul TLS connection.
+#
+# Optional
+#
+#    [consul.tls]
+#    ca = "/etc/ssl/ca.crt"
+#    cert = "/etc/ssl/consul.crt"
+#    key = "/etc/ssl/consul.key"
+#    insecureSkipVerify = true
+
+[metrics]
+{% if traefik_metrics_influxdb_address != "" and traefik_metrics_influxdb_port != "" %}
+  # InfluxDB metrics exporter type
+  [metrics.influxdb]
+    # InfluxDB's address.
+    #
+    # Required
+    # Default: "localhost:8089"
+    #
+    address = "{{ traefik_metrics_influxdb_address }}:{{ traefik_metrics_influxdb_port }}"
+
+    # InfluxDB push interval
+    #
+    # Optional
+    # Default: "10s"
+    #
+    pushinterval = "{{ traefik_metrics_push_interval }}"
+{% endif %}

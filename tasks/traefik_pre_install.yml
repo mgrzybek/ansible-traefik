@@ -1,0 +1,60 @@
+---
+
+- set_fact:
+    configure_consul: false
+
+- name: Check consul
+  shell: systemctl is-active consul 2>/dev/null || echo ko && exit 0
+  register: consul_service
+
+- name: Create consul_bin variable consul_bin
+  when:
+    - traefik_config_consul == true
+    - consul_service.stdout.find('active') > -1
+  block:
+    - name: Get consul full path
+      shell: systemctl show -p ExecStart consul|tr ' ' '\n'|awk -F= '/path=/ {print $2}'
+      register: consul_bin_path
+
+    - set_fact:
+        consul_bin: "{{ consul_bin_path.stdout }}"
+        configure_consul: true
+
+- name: Check traefik binary
+  register: traefik_bin_stats
+  stat: path={{ traefik_install_prefix }}/traefik get_checksum=no
+
+- name: Check traefik version
+  when:
+    - traefik_bin_stats.stat.exists
+  register: traefik_bin_version
+  shell: >
+    "{{ traefik_install_prefix }}"/traefik version \
+    | awk -Fv '/^Version/ {print $2}'
+
+- name: Set the version to use
+  when: traefik_package_state == 'latest'
+  block:
+    - name: Get last version online
+      register: last_version
+      run_once: true
+      shell: >
+        curl \
+            {% if traefik_http_proxy is defined and traefik_http_proxy != '' %}-x {{ traefik_http_proxy }}{% endif %} \
+            -s {{ traefik_versions_url }} \
+        | fgrep /containous/traefik/tree/ \
+        | awk '{print $2}' \
+        | awk -F/ '{gsub("\"","");print $NF}'
+
+    - set_fact: traefik_version="{{ last_version.stdout }}"
+
+- name: Add the user {{ traefik_user }}
+  user:
+    name: "{{ traefik_user }}"
+    comment: "Traefik daemon user"
+
+- name: Allow {{ traefik_user }} to bind privileged ports
+  when:
+   - traefik_user != 'root'
+   - traefik_http_port <= 1024 or traefik_https_port <= 1024
+  command: setcap CAP_NET_BIND_SERVICE=+eip {{ traefik_install_prefix }}/traefik

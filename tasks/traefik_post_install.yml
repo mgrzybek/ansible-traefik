@@ -1,0 +1,21 @@
+---
+
+- name: Traefik toml file
+  template: src=traefik.toml.j2 dest={{ traefik_conf_file }} mode=0644
+  register: traefik_conf_state
+  notify: reload traefik
+
+- name: Create consul service
+  when:
+    - configure_consul == true
+  template: src=service.consul.json.j2 dest={{ traefik_consul_services_path }}/{{ item.service.name }}.json
+  with_items: "{{ traefik_consul }}"
+  notify: reload consul
+
+- name: Start traefik
+  when:
+    - install_packages is changed
+  service:
+    name: traefik
+    state: "{{ traefik_post_install_state }}"
+    enabled: "{{ traefik_post_install_enabled }}"
