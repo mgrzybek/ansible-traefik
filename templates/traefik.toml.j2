@@ -73,7 +73,7 @@ format = "json"
   # Required
   # Default: "127.0.0.1:8500"
   #
-  endpoint = "127.0.0.1:8500"
+  endpoint = "{{ traefik_consul_endpoint }}"
 
   # Expose Consul catalog services by default in Traefik.
   #
@@ -93,7 +93,7 @@ format = "json"
   # Optional
   # Default: "traefik"
   #
-  prefix = "traefik"
+  prefix = "{{ traefik_consul_prefix }}"
 
   # Default frontEnd Rule for Consul services.
   #

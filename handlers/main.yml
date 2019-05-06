@@ -8,3 +8,20 @@
 
 - name: reload traefik
   service: name=traefik state=restarted
+
+- name: restart traefik service
+  when: traefik_use_docker | lower == 'false'
+  service: name=traefik state=restarted enabled="{{ traefik_post_install_enabled }}"
+
+- name: restart traefik resource
+  when: traefik_cluster_aware | lower == 'true'
+  command: crm -w resource restart {{ traefik_cluster_resource_name }}
+
+- name: restart traefik container
+  when: traefik_use_docker | lower == 'true'
+  docker:
+    name: "{{ traefik_docker_image }}:{{ traefik_docker_tag }}"
+    state: restarted
+    published_ports: "{{ traefik_docker_published_ports }}"
+    volumes: "{{ traefik_docker_volumes }}"
+    env: "{{ traefik_docker_env }}"

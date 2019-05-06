@@ -37,4 +37,21 @@ traefik_consul_services_path: /etc/consul.d
 traefik_api_entrypoint: traefik
 
 traefik_cluster_aware: false
+traefik_cluster_resource_name: traefik-service
+traefik_use_docker: false
 
+traefik_docker_image: traefik
+traefik_docker_tag: alpine
+
+traefik_docker_published_ports:
+    - "80:80/tcp"
+    - "443:443/tcp"
+
+traefik_docker_volumes:
+    - "{{ traefik_conf_file }}:/etc/traefik/traefik.toml:ro"
+    - "{{ traefik_cert_directory }}:{{ traefik_cert_directory }}:ro"
+
+traefik_docker_env: {}
+
+traefik_consul_endpoint: "127.0.0.1:8500"
+traefik_consul_prefix: traefik

@@ -1,40 +1,49 @@
 ---
 
-- name: Install packages
-  package:
-    name: "{{ traefik_distro_packages }}"
-    state: "{{ traefik_package_state }}"
-    update_cache: "{{ (ansible_pkg_mgr == 'apt') | ternary('yes', omit) }}"
-    cache_valid_time: "{{ (ansible_pkg_mgr == 'apt') | ternary(cache_timeout, omit) }}"
-  register: install_packages
-  until: install_packages is success
-  retries: 5
-  delay: 2
-  tags:
-    - install-apt
-    - install-yum
-    - install-zypper
+- when: traefik_use_docker | lower == 'false'
+  block:
+    - name: Install packages
+      package:
+        name: "{{ traefik_distro_packages }}"
+        state: "{{ traefik_package_state }}"
+        update_cache: "{{ (ansible_pkg_mgr == 'apt') | ternary('yes', omit) }}"
+        cache_valid_time: "{{ (ansible_pkg_mgr == 'apt') | ternary(cache_timeout, omit) }}"
+      register: install_packages
+      until: install_packages is success
+      retries: 5
+      delay: 2
+      tags:
+        - install-apt
+        - install-yum
+        - install-zypper
 
-- name: Get traefik (version {{ traefik_consul_version }})
-  when:
-    - traefik_bin_version.stdout|default('') != traefik_version
-  get_url:
-    url: "{{ traefik_repo_url }}/{{ traefik_version }}/traefik_linux-amd64"
-    dest: "{{ traefik_install_prefix }}/traefik"
-    mode: 0755
-  environment:
-    https_proxy: "{{ traefik_http_proxy }}"
+    - name: Get traefik (version {{ traefik_consul_version }})
+      when:
+        - traefik_bin_version.stdout|default('') != traefik_version
+      get_url:
+        url: "{{ traefik_repo_url }}/{{ traefik_version }}/traefik_linux-amd64"
+        dest: "{{ traefik_install_prefix }}/traefik"
+        mode: 0755
+      environment:
+        https_proxy: "{{ traefik_http_proxy }}"
+
+    - name: Service systemd
+      template: src=traefik.service.j2 dest=/etc/systemd/system/traefik.service
+      notify: reload systemd
+
+    - name: Configuration repertoires
+      file: path={{ item }} state=directory owner="{{ traefik_user }}" recurse=yes
+      with_items:
+    #    - /etc/traefik.d
+        - /var/lib/traefik
+        - "{{ traefik_cert_directory }}"
+
+- when: traefik_use_docker | lower == 'true'
+  docker_image:
+    name: "{{ traefik_docker_image }}:{{ traefik_docker_tag }}"
 
 ###############################
 # Directories and systemd files
 
-- name: Configuration repertoires
-  file: path={{ item }} state=directory owner="{{ traefik_user }}" recurse=yes
-  with_items:
-#    - /etc/traefik.d
-    - /var/lib/traefik
-    - "{{ traefik_cert_directory }}"
 
-- name: Service systemd
-  template: src=traefik.service.j2 dest=/etc/systemd/system/traefik.service
-  notify: reload systemd
+
