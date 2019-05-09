@@ -1,23 +1,25 @@
 ---
 
-- set_fact:
+- name: Check running services
+  service_facts:
+
+- name: Set default facts
+  set_fact:
+    use_firewalld: false
     configure_consul: false
 
-- name: Check consul
-  shell: systemctl is-active consul 2>/dev/null || echo ko && exit 0
-  register: consul_service
-
-- name: Create consul_bin variable consul_bin
+- name: Get Consul details
   when:
-    - traefik_config_consul == true
-    - consul_service.stdout.find('active') > -1
+    - traefik_config_consul | lower == 'true'
+    - ansible_facts.services.consul is defined
   block:
-    - name: Get consul full path
-      shell: systemctl show -p ExecStart consul|tr ' ' '\n'|awk -F= '/path=/ {print $2}'
-      register: consul_bin_path
+    - name: Get Consul service details
+      systemd: name=consul
+      register: consul_systemd
 
-    - set_fact:
-        consul_bin: "{{ consul_bin_path.stdout }}"
+    - name: Set Consul facts
+      set_fact:
+        consul_bin: "{{ systemd_result.status.ExecStart | regex_replace('^.+path=(.+?)\s+.+?$','\1') }}"
         configure_consul: true
 
 - name: Check traefik binary
@@ -48,13 +50,12 @@
 
     - set_fact: traefik_version="{{ last_version.stdout }}"
 
-- name: Add the user {{ traefik_user }}
-  user:
-    name: "{{ traefik_user }}"
-    comment: "Traefik daemon user"
-
-- name: Allow {{ traefik_user }} to bind privileged ports
+- name: Manage non-root traefik user
   when:
-   - traefik_user != 'root'
-   - traefik_http_port <= 1024 or traefik_https_port <= 1024
-  command: setcap CAP_NET_BIND_SERVICE=+eip {{ traefik_install_prefix }}/traefik
+    - traefik_user != 'root'
+  block:
+    - name: Add the user {{ traefik_user }}
+      user:
+        name: "{{ traefik_user }}"
+        comment: "Traefik daemon user"
+

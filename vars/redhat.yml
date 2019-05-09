@@ -1,3 +1,10 @@
 ---
 
+traefik_repo_rpm_url: 
+traefik_repo_key_url: 
+
 traefik_distro_packages: []
+
+traefik_sysconfig: /etc/sysconfig
+
+traefik_cluster_command: pcs

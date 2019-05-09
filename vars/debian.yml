@@ -1,3 +1,10 @@
 ---
 
+traefik_repo_apt_url: 
+traefik_repo_key_url: 
+
 traefik_distro_packages: []
+
+traefik_sysconfig: /etc/default
+
+traefik_cluster_command: crm

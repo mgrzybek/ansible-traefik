@@ -1,27 +1,33 @@
 ---
 
+- name: restart traefik service
+  when:
+    - traefik_post_config_restart_on_change | lower == 'true'
+    - traefik_cluster_aware | lower == 'false'
+    - traefik_use_docker | lower == 'false'
+  service: name=traefik state=restarted enabled=yes
+
+- name: restart traefik resource
+  when:
+    - traefik_post_config_restart_on_change | lower == 'true'
+    - traefik_cluster_aware | lower == 'true'
+  shell: >
+    "{{ traefik_cluster_command }} resource unmanage {{ traefik_cluster_resource_name }} && \
+    systemctl restart traefik.service && \
+    {{ traefik_cluster_command }} resource manage {{ traefik_cluster_resource_name }} && \
+    {{ traefik_cluster_command }} resource enable {{ traefik_cluster_resource_name }}"
+
+- name: reload systemd
+  systemd: daemon-reload=yes
+
+- name: reload firewalld
+  command: firewall-cmd --reload
+
 - name: reload consul
   command: "{{ consul_bin }} reload"
 
-- name: reload systemd
-  shell: systemctl daemon-reload
+- name: restart telegraf
+  service: name=telegraf state=restarted
 
-- name: reload traefik
-  service: name=traefik state=restarted
-
-- name: restart traefik service
-  when: traefik_use_docker | lower == 'false'
-  service: name=traefik state=restarted enabled="{{ traefik_post_install_enabled }}"
-
-- name: restart traefik resource
-  when: traefik_cluster_aware | lower == 'true'
-  command: crm -w resource restart {{ traefik_cluster_resource_name }}
-
-- name: restart traefik container
-  when: traefik_use_docker | lower == 'true'
-  docker:
-    name: "{{ traefik_docker_image }}:{{ traefik_docker_tag }}"
-    state: restarted
-    published_ports: "{{ traefik_docker_published_ports }}"
-    volumes: "{{ traefik_docker_volumes }}"
-    env: "{{ traefik_docker_env }}"
+- name: delete repo key file
+  file: path="{{ repo_key_result.dest }}" state=absent

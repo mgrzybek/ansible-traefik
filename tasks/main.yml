@@ -1,24 +1,24 @@
 ---
+# tasks file for ansible-traefik
 
-- name: Variables pour chaque OS
+- name: Variables by OS
   include_vars: "{{ item }}"
+  tags: always
   with_first_found:
     - "{{ ansible_distribution | lower }}-{{ ansible_distribution_version | lower }}.yml"
     - "{{ ansible_distribution | lower }}-{{ ansible_distribution_major_version | lower }}.yml"
     - "{{ ansible_os_family | lower }}-{{ ansible_distribution_major_version | lower }}.yml"
     - "{{ ansible_distribution | lower }}.yml"
     - "{{ ansible_os_family | lower }}.yml"
-  tags:
-    - always
 
-- include: traefik_pre_install.yml
+- import_tasks: traefik_pre_install.yml
   tags:
     - traefik-pre-install
 
-- include: traefik_install.yml
+- import_tasks: traefik_install.yml
   tags:
     - traefik-install
 
-- include: traefik_post_install.yml
+- import_tasks: traefik_post_install.yml
   tags:
     - traefik-post-install

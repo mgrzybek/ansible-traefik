@@ -3,19 +3,37 @@
 - name: Traefik toml file
   template: src=traefik.toml.j2 dest={{ traefik_conf_file }} mode=0644
   register: traefik_conf_state
-  notify: reload traefik
+  notify:
+    - restart traefik service
+    - restart traefik resource
 
-- name: Create consul service
+- name: Manage non-root traefik user
   when:
-    - configure_consul == true
+    - traefik_user != 'root'
+    - traefik_use_docker | lower == 'false'
+  block:
+    - name: Allow {{ traefik_user }} to bind privileged ports
+      when:
+       - traefik_http_port <= 1024 or traefik_https_port <= 1024
+      command: setcap CAP_NET_BIND_SERVICE=+eip {{ traefik_install_prefix }}/traefik
+
+- name: Consul service definition
+  when:
+    - configure_consul | lower == 'true'
   template: src=service.consul.json.j2 dest={{ traefik_consul_services_path }}/{{ item.service.name }}.json
   with_items: "{{ traefik_consul }}"
   notify: reload consul
 
-- name: Start traefik
+- name: (Re)start docker
   when:
-    - install_packages is changed
-  service:
-    name: traefik
-    state: "{{ traefik_post_install_state }}"
-    enabled: "{{ traefik_post_install_enabled }}"
+    - traefik_cluster_aware | lower == 'false'
+    - traefik_use_docker | lower == 'true'
+  block:
+    - name: Start the container
+      docker_container:
+        state: started
+        name: traefik-server
+        image: "{{ traefik_docker_image }}"
+        published_ports: "{{ traefik_docker_published_ports }}"
+        volumes: "traefik_docker_volumes }}"
+        env: "{{ traefik_docker_env }}"
