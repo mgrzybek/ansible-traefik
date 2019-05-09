@@ -1,5 +1,11 @@
 ---
 
+- name: Check consul service data
+  when:
+    - traefik_consul == None
+    - traefik_config_consul | lower == 'true'
+  fail: msg="traefik_consul should be given"
+
 - name: Check running services
   service_facts:
 
