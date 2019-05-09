@@ -5,7 +5,7 @@
     - traefik_post_config_restart_on_change | lower == 'true'
     - traefik_cluster_aware | lower == 'false'
     - traefik_use_docker | lower == 'false'
-  service: name=traefik state=restarted enabled=yes
+  service: name=traefik state=restarted enabled={{ traefik_post_install_enabled }}
 
 - name: restart traefik resource
   when:
@@ -25,9 +25,6 @@
 
 - name: reload consul
   command: "{{ consul_bin }} reload"
-
-- name: restart telegraf
-  service: name=telegraf state=restarted
 
 - name: delete repo key file
   file: path="{{ repo_key_result.dest }}" state=absent

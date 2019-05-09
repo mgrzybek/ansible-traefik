@@ -186,7 +186,7 @@ format = "json"
 #    insecureSkipVerify = true
 
 [metrics]
-{% if traefik_metrics_influxdb_address != "" and traefik_metrics_influxdb_port != "" %}
+{% if traefik_metrics_influxdb_endpoint != "" %}
   # InfluxDB metrics exporter type
   [metrics.influxdb]
     # InfluxDB's address.
@@ -194,12 +194,12 @@ format = "json"
     # Required
     # Default: "localhost:8089"
     #
-    address = "{{ traefik_metrics_influxdb_address }}:{{ traefik_metrics_influxdb_port }}"
+    address = "{{ traefik_metrics_influxdb_endpoint }}"
 
     # InfluxDB push interval
     #
     # Optional
     # Default: "10s"
     #
-    pushinterval = "{{ traefik_metrics_push_interval }}"
+    pushinterval = "{{ traefik_metrics_influxdb_push_interval }}"
 {% endif %}

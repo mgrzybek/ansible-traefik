@@ -1,31 +1,55 @@
 ansible-traefik
 ===============
 
-A brief description of the role goes here.
+Deploy Traefik reverse-proxy.
 
 Requirements
 ------------
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+You need to be able to download traefik binary or copy it yourself on the 
+servers.
 
 Role Variables
 --------------
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+By default `traefik_package_state` is set to `present` and uses 
+`traefik_version`. You can set `traefik_package_state` to `latest` and check 
+the official website and dowanload the last version available.
+
+In a high-available environment two variables are used:
+* `traefik_cluster_aware` should be set to `true`
+* `traefik_cluster_resource_name` should be given
 
 Dependencies
 ------------
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+This playbook is standalone.
 
 Example Playbook
 ----------------
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+Deploy a non-root running traefik service. The default domain name is 
+`example.com`:
 
     - hosts: servers
-      roles:
-         - { role: ansible-traefik, x: 42 }
+      role: ansible-traefik
+      vars:
+        # Default domain name
+        traefik_domain_name: example.com
+
+Deploy a traefik service as a container. The default domain name is 
+`example.com` and metrics are sent to an InfluxDB endpoint:
+
+    - hosts: servers
+      role: ansible-traefik
+      vars:
+        # Default domain name
+        traefik_domain_name: example.com
+        # Packaging
+        traefik_use_docker: true
+        # Metrics
+        traefik_metrics_influxdb_endpoint: http://metrics.example.com:8086
+        traefik_metrics_influxdb_push_interval: 60s
 
 License
 -------
