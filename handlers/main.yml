@@ -11,11 +11,10 @@
   when:
     - traefik_post_config_restart_on_change | lower == 'true'
     - traefik_cluster_aware | lower == 'true'
-  shell: >
-    "{{ traefik_cluster_command }} resource unmanage {{ traefik_cluster_resource_name }} && \
-    systemctl restart traefik.service && \
-    {{ traefik_cluster_command }} resource manage {{ traefik_cluster_resource_name }} && \
-    {{ traefik_cluster_command }} resource enable {{ traefik_cluster_resource_name }}"
+  shell: "{{ item }}"
+  with_items:
+    - "{{ traefik_cluster_command }} resource enable {{ traefik_cluster_resource_name }}"
+    - "{{ traefik_cluster_command }} resource restart {{ traefik_cluster_resource_name }}"
 
 - name: reload systemd
   systemd: daemon-reload=yes
