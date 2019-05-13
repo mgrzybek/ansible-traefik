@@ -17,7 +17,7 @@
 - name: Get Consul details
   when:
     - traefik_config_consul | lower == 'true'
-    - ansible_facts.services.consul is defined
+    - ansible_facts.services | map('quote') | join(',') | regex_search('consul')
   block:
     - name: Get Consul service details
       systemd: name=consul
