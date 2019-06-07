@@ -13,7 +13,6 @@
     - traefik_cluster_aware | lower == 'true'
   shell: "{{ item }}"
   with_items:
-    - "{{ traefik_cluster_command }} resource enable {{ traefik_cluster_resource_name }}"
     - "{{ traefik_cluster_command }} resource restart {{ traefik_cluster_resource_name }}"
 
 - name: reload systemd
