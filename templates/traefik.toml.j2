@@ -194,7 +194,14 @@ format = "json"
     # Required
     # Default: "localhost:8089"
     #
-    address = "{{ traefik_metrics_influxdb_endpoint }}"
+    address = "{{ traefik_metrics_influxdb_endpoint | urlsplit('hostname') }}:{{ traefik_metrics_influxdb_endpoint | urlsplit('port') }}"
+
+    # InfluxDB's address protocol (udp or http)
+    #
+    # Required
+    # Default: "udp"
+    #
+    protocol = "{{ traefik_metrics_influxdb_endpoint | urlsplit('scheme') }}"
 
     # InfluxDB push interval
     #
