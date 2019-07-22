@@ -6,6 +6,15 @@
     - traefik_config_consul | lower == 'true'
   fail: msg="traefik_consul should be given"
 
+- name: Check influxdb endpoint
+  when:
+    - traefik_metrics_influxdb_endpoint is defined
+    - traefik_metrics_influxdb_endpoint | length > 0
+    - traefik_metrics_influxdb_endpoint | urlsplit('scheme') != "http"
+    - traefik_metrics_influxdb_endpoint | urlsplit('scheme') != "udp"
+    - not traefik_metrics_influxdb_endpoint | urlsplit('port') is defined
+  fail: msg="traefik_metrics_influxdb_endpoint must be a URL (http://endpoint:port or udp://endpoint:port)"
+
 - name: Check running services
   service_facts:
 
