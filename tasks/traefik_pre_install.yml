@@ -9,6 +9,7 @@
 - name: Check influxdb endpoint
   when:
     - traefik_metrics_influxdb_endpoint is defined
+    - traefik_metrics_influxdb_endpoint != None
     - traefik_metrics_influxdb_endpoint | length > 0
     - traefik_metrics_influxdb_endpoint | urlsplit('scheme') != "http"
     - traefik_metrics_influxdb_endpoint | urlsplit('scheme') != "udp"
