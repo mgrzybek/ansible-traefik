@@ -186,7 +186,7 @@ format = "json"
 #    insecureSkipVerify = true
 
 [metrics]
-{% if traefik_metrics_influxdb_endpoint != "" %}
+{% if traefik_metrics_influxdb_endpoint is defined and traefik_metrics_influxdb_endpoint != "" %}
   # InfluxDB metrics exporter type
   [metrics.influxdb]
     # InfluxDB's address.
