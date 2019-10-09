@@ -17,7 +17,7 @@
         - install-yum
         - install-zypper
 
-    - name: Get traefik (version {{ traefik_consul_version }})
+    - name: Get traefik (version {{ traefik_version }})
       when:
         - traefik_bin_version.stdout|default('') != traefik_version
       get_url:
