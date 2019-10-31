@@ -23,7 +23,7 @@
     use_firewalld: false
     configure_consul: false
 
-  when:
+- when:
     - traefik_config_consul | lower == 'true'
     - ansible_facts.services | map('quote') | join(',') | regex_search('consul')
   block:
