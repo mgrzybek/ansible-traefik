@@ -22,6 +22,9 @@
   set_fact:
     use_firewalld: false
     configure_consul: false
+    
+- name: Check running services
+  service_facts:
 
 - when:
     - traefik_config_consul | lower == 'true'
@@ -38,8 +41,7 @@
 
 - when: traefik_use_docker | lower == 'false'
   block:
-    - name: Check running services
-      service_facts:
+
 
     - name: Check traefik binary
       register: traefik_bin_stats
