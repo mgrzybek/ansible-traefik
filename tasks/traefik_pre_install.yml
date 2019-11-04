@@ -1,6 +1,7 @@
 ---
 
 # TODO: check traefik_http_proxy variable
+# TODO: check traefik_entry_points
 
 - name: Check consul service data
   when:
@@ -15,7 +16,7 @@
     - traefik_metrics_influxdb_endpoint | length > 0
     - traefik_metrics_influxdb_endpoint | urlsplit('scheme') != "http"
     - traefik_metrics_influxdb_endpoint | urlsplit('scheme') != "udp"
-    - not traefik_metrics_influxdb_endpoint | urlsplit('port') is defined
+    - traefik_metrics_influxdb_endpoint | urlsplit('port') is undefined
   fail: msg="traefik_metrics_influxdb_endpoint must be a URL (http://endpoint:port or udp://endpoint:port)"
 
 - name: Set default facts
@@ -41,8 +42,6 @@
 
 - when: traefik_use_docker | lower == 'false'
   block:
-
-
     - name: Check traefik binary
       register: traefik_bin_stats
       stat: path={{ traefik_install_prefix }}/traefik get_checksum=no
