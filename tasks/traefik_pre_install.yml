@@ -1,7 +1,6 @@
 ---
 
 # TODO: check traefik_http_proxy variable
-# TODO: check traefik_entry_points
 
 - name: Check consul service data
   when:
@@ -18,6 +17,11 @@
     - traefik_metrics_influxdb_endpoint | urlsplit('scheme') != "udp"
     - traefik_metrics_influxdb_endpoint | urlsplit('port') is undefined
   fail: msg="traefik_metrics_influxdb_endpoint must be a URL (http://endpoint:port or udp://endpoint:port)"
+
+- name: Check intrypoints
+  when:
+    - traefik_entry_points | length == 0
+  fail: msg="traefik_entry_points is contain at least one item"
 
 - name: Set default facts
   set_fact:
