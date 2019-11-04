@@ -7,11 +7,13 @@ defaultEntryPoints = {{ traefik_entry_points | to_json }}
   [entryPoints.http]
   address = ":{{ traefik_http_port }}"
 
+{% if traefik_http_redirect is defined %}
 {% if traefik_http_redirect | lower == 'true' %}
     [entryPoints.http.redirect]
       entryPoint = "https"
-
 {% endif %}
+{% endif %}
+
 {% if 'https' in traefik_entry_points %}
   [entryPoints.https]
   address = ":{{ traefik_https_port }}"

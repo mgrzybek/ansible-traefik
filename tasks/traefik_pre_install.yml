@@ -18,10 +18,15 @@
     - traefik_metrics_influxdb_endpoint | urlsplit('port') is undefined
   fail: msg="traefik_metrics_influxdb_endpoint must be a URL (http://endpoint:port or udp://endpoint:port)"
 
-- name: Check intrypoints
+- name: Check entrypoints
   when:
     - traefik_entry_points | length == 0
-  fail: msg="traefik_entry_points is contain at least one item"
+  fail: msg="traefik_entry_points must contain at least one item"
+  
+- name: Check entrypoints
+  when:
+    - traefik_api_entrypoint | length == 0
+  fail: msg="traefik_api_entrypoint is empty"
 
 - name: Set default facts
   set_fact:
