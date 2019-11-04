@@ -3,7 +3,7 @@
 traefik_post_install_enabled: true
 traefik_post_config_restart_on_change: true
 
-traefik_versions_url: https://github.com/containous/traefik/releases/download
+traefik_versions_url: https://github.com/containous/traefik/releases
 traefik_repo_url: "{{ traefik_versions_url }}/download"
 traefik_version: v1.7.19
 traefik_install_prefix: /usr/local/bin
