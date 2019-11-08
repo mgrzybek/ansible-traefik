@@ -51,6 +51,8 @@ traefik_docker_volumes:
 
 traefik_docker_env: {}
 
+traefik_container_name: traefik-service
+
 traefik_consul_endpoint: "127.0.0.1:8500"
 traefik_consul_prefix: traefik
 traefik_consul: {}
