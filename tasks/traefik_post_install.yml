@@ -35,5 +35,5 @@
         name: "{{ traefik_container_name }}"
         image: "{{ traefik_docker_image }}"
         published_ports: "{{ traefik_docker_published_ports }}"
-        volumes: "traefik_docker_volumes }}"
+        volumes: "{{ traefik_docker_volumes }}"
         env: "{{ traefik_docker_env }}"
