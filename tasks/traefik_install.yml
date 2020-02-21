@@ -21,11 +21,20 @@
       when:
         - traefik_bin_version.stdout|default('') != traefik_version
       get_url:
-        url: "{{ traefik_repo_url }}/{{ traefik_version }}/traefik_linux-amd64"
-        dest: "{{ traefik_install_prefix }}/traefik"
+        url: "{{ traefik_repo_url }}/{{ traefik_version }}/traefik_{{ traefik_version }}_linux_amd64.tar.gz"
+        dest: "/tmp/traefik_bin.tar.gz"
         mode: 0755
       environment:
         https_proxy: "{{ traefik_http_proxy }}"
+
+    - name: Install binary
+      unarchive: src="/tmp/traefik_bin.tar.gz" dest={{ traefik_install_prefix }}  mode=0755 copy=no
+      notify:
+         - restart traefik service
+         - restart traefik resource
+
+    - name: Cleanup file
+      file: path=/tmp/traefik_bin.tar.gz state=absent
 
     - name: Service systemd
       template: src=traefik.service.j2 dest=/etc/systemd/system/traefik.service

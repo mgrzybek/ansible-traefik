@@ -17,8 +17,8 @@ defaultEntryPoints = {{ traefik_entry_points | to_json }}
 {% if 'https' in traefik_entry_points %}
   [entryPoints.https]
   address = ":{{ traefik_https_port }}"
+{% if traefik_https_tls_certificates is defined and traefik_https_tls_certificates | length > 0 %}
     [entryPoints.https.tls]
-{% if traefik_https_tls_certificates is defined %}
 {% for item in traefik_https_tls_certificates %}
       [[entryPoints.https.tls.certificates]]
       certFile = "{{ traefik_cert_directory }}/{{ item.cert_file }}"
@@ -40,29 +40,6 @@ format = "json"
 # API
 ################################################################
 [api]
-  # Name of the related entry point
-  #
-  # Optional
-  # Default: "traefik"
-  #
-  entryPoint = "{{ traefik_api_entrypoint }}"
-
-  # Enabled Dashboard
-  #
-  # Optional
-  # Default: true
-  #
-  dashboard = true
-
-  # Enable debug mode.
-  # This will install HTTP handlers to expose Go expvars under /debug/vars and
-  # pprof profiling data under /debug/pprof.
-  # Additionally, the log level will be set to DEBUG.
-  #
-  # Optional
-  # Default: false
-  #
-  debug = false
 
 ################################################################
 # Consul Catalog Provider
@@ -187,8 +164,8 @@ format = "json"
 #    key = "/etc/ssl/consul.key"
 #    insecureSkipVerify = true
 
-[metrics]
 {% if traefik_metrics_influxdb_endpoint is defined and traefik_metrics_influxdb_endpoint != None %}
+[metrics]
   # InfluxDB metrics exporter type
   [metrics.influxdb]
     # InfluxDB's address.

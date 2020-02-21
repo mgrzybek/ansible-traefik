@@ -9,7 +9,7 @@ Environment=GOMAXPROCS=2
 Restart=on-failure
 KillSignal=SIGTERM
 
-ExecStart={{ traefik_install_prefix }}/traefik -c {{ traefik_conf_file }}
+ExecStart={{ traefik_install_prefix }}/traefik --configfile {{ traefik_conf_file }}
 
 {% if traefik_user != 'root' %}
 User={{ traefik_user }}

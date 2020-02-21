@@ -5,7 +5,7 @@ traefik_post_config_restart_on_change: true
 
 traefik_versions_url: https://github.com/containous/traefik/releases
 traefik_repo_url: "{{ traefik_versions_url }}/download"
-traefik_version: v1.7.19
+traefik_version: v2.1.4
 traefik_install_prefix: /usr/local/bin
 traefik_conf_file: /etc/traefik.toml
 traefik_cert_directory: /etc/traefik-ssl
@@ -32,7 +32,7 @@ traefik_domain_name: service.consul
 traefik_config_consul: false
 traefik_consul_services_path: /etc/consul.d
 
-traefik_api_entrypoint: traefik
+traefik_api_entrypoint: https
 
 traefik_cluster_aware: false
 traefik_cluster_resource_name: traefik-service
