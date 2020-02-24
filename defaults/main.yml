@@ -5,7 +5,7 @@ traefik_post_config_restart_on_change: true
 
 traefik_versions_url: https://github.com/containous/traefik/releases
 traefik_repo_url: "{{ traefik_versions_url }}/download"
-traefik_version: v2.1.4
+traefik_version: 2.1.4
 traefik_install_prefix: /usr/local/bin
 traefik_conf_file: /etc/traefik.toml
 traefik_cert_directory: /etc/traefik-ssl

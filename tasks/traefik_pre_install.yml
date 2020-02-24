@@ -61,7 +61,7 @@
       register: traefik_bin_version
       shell: >
         "{{ traefik_install_prefix }}"/traefik version \
-        | awk -Fv '/^Version/ {print $2}'
+        | awk '/^Version/ {print $2}'
 
     - name: Set the version to use
       when: traefik_package_state == 'latest'
