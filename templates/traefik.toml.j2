@@ -11,10 +11,12 @@ defaultEntryPoints = {{ traefik_entry_points | json_query('[].name') }}
 
 [tls]
 {% for item in traefik_entry_points %}
+{% if item.tls is defined and item.tls.certificates is defined %}
 {% if item.tls.certificates.cert_file is defined and item.tls.certificates.key_file is defined %}
 [[tls.certificates]]
 certFile = "{{ item.tls.certificates.cert_file }}"
 keyFile = "{{ item.tls.certificates.key_file }}"
+{% endif %}
 {% endif %}
 {% endfor %}
 
