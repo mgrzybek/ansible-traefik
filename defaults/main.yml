@@ -14,11 +14,15 @@ traefik_package_state: present
 cache_timeout: 600
 
 traefik_entry_points:
-    - http
-    - https
+    - name: http
+      address: ":80"
+    - name: https
+      address: ":443"
+      tls:
+        certificates:
+            cert_file:
+            key_file:
 
-traefik_http_port: 80
-traefik_https_port: 443
 traefik_http_redirect: false
 
 traefik_https_tls_certificates: []
@@ -53,6 +57,12 @@ traefik_docker_env: {}
 
 traefik_container_name: traefik-service
 
-traefik_consul_endpoint: "127.0.0.1:8500"
+traefik_consul_endpoint: "http://127.0.0.1:8500"
 traefik_consul_prefix: traefik
+traefik_consul_token:
 traefik_consul: {}
+
+traefik_metrics_influxdb_database:
+traefik_metrics_influxdb_pushinterval: 10s
+
+traefik_enable_api: false

@@ -12,9 +12,18 @@
     - traefik_user != 'root'
     - traefik_use_docker | lower == 'false'
   block:
+    - name: Get listening ports
+      set_fact:
+        ports: "{{ traefik_entry_points | json_query('[].address') }}"
+        set_cap: false
+ 
+    - name: Loop other the listening ports
+      set_fact: set_cap=true
+      when: item | regex_replace('^.+?(\d+)$','\1') | int <= 1024
+      with_items: "{{ ports }}"
+
     - name: Allow {{ traefik_user }} to bind privileged ports
-      when:
-       - traefik_http_port <= 1024 or traefik_https_port <= 1024
+      when: set_cap | lower == 'true'
       command: setcap CAP_NET_BIND_SERVICE=+eip {{ traefik_install_prefix }}/traefik
 
 - name: Consul service definition

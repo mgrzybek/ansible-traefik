@@ -11,7 +11,7 @@
   when:
     - traefik_post_config_restart_on_change | lower == 'true'
     - traefik_cluster_aware | lower == 'true'
-  shell: "{{ item }}"
+  command: "{{ item }}"
   with_items:
     - "{{ traefik_cluster_command }} resource restart {{ traefik_cluster_resource_name }}"
 

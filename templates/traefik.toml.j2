@@ -1,31 +1,22 @@
 ################################################################
 # Entry points
 ################################################################
-defaultEntryPoints = {{ traefik_entry_points | to_json }}
+defaultEntryPoints = {{ traefik_entry_points | json_query('[].name') }}
 
 [entryPoints]
-  [entryPoints.http]
-  address = ":{{ traefik_http_port }}"
-
-{% if traefik_http_redirect is defined %}
-{% if traefik_http_redirect | lower == 'true' %}
-    [entryPoints.http.redirect]
-      entryPoint = "https"
-{% endif %}
-{% endif %}
-
-{% if 'https' in traefik_entry_points %}
-  [entryPoints.https]
-  address = ":{{ traefik_https_port }}"
-{% if traefik_https_tls_certificates is defined and traefik_https_tls_certificates | length > 0 %}
-    [entryPoints.https.tls]
-{% for item in traefik_https_tls_certificates %}
-      [[entryPoints.https.tls.certificates]]
-      certFile = "{{ traefik_cert_directory }}/{{ item.cert_file }}"
-      keyFile = "{{ traefik_cert_directory }}/{{ item.key_file }}"
+{% for item in traefik_entry_points %}
+  [entryPoints.{{ item.name }}]
+  address = "{{ item.address }}"
 {% endfor %}
+
+[tls]
+{% for item in traefik_entry_points %}
+{% if item.tls.certificates.cert_file is defined and item.tls.certificates.key_file is defined %}
+[[tls.certificates]]
+certFile = "{{ item.tls.certificates.cert_file }}"
+keyFile = "{{ item.tls.certificates.key_file }}"
 {% endif %}
-{% endif %}
+{% endfor %}
 
 ################################################################
 # Logs
@@ -36,156 +27,38 @@ format = "json"
 [accessLog]
 format = "json"
 
+{% if traefik_enable_api | lower == 'true' %}
 ################################################################
 # API
 ################################################################
 [api]
 
+dashboard = true
+insecure = false
+
+{% endif %}
 ################################################################
 # Consul Catalog Provider
 ################################################################
 
 # Enable Consul Catalog Provider.
-[consulCatalog]
-  # Consul server endpoint.
-  #
-  # Required
-  # Default: "127.0.0.1:8500"
-  #
-  endpoint = "{{ traefik_consul_endpoint }}"
+[providers.consulCatalog]
+prefix = "{{ traefik_consul_prefix }}"
+exposedByDefault = false
 
-  # Expose Consul catalog services by default in Traefik.
-  #
-  # Optional
-  # Default: true
-  #
-  exposedByDefault = false
+  [providers.consulCatalog.endpoint]
+  address = "{{ traefik_consul_endpoint }}"
+{% if traefik_consul_token != None and traefik_consul_token | length > 0 %}
+  token = "{{ traefik_consul_token }}"
+{% endif %}
 
-  # Default domain used.
-  #
-  # Optional
-  #
-  domain = "{{ traefik_domain_name }}"
-
-  # Prefix for Consul catalog tags.
-  #
-  # Optional
-  # Default: "traefik"
-  #
-  prefix = "{{ traefik_consul_prefix }}"
-
-  # Default frontEnd Rule for Consul services.
-  #
-  # The format is a Go Template with:
-  # - ".ServiceName", ".Domain" and ".Attributes" available
-  # - "getTag(name, tags, defaultValue)", "hasTag(name, tags)" and "getAttribute(name, tags, defaultValue)" functions are available
-  # - "getAttribute(...)" function uses prefixed tag names based on "prefix" value
-  #
-  # Optional
-  # Default: "Host:{{ '{{' }}.ServiceName{{ '}}' }}.{{ '{{' }}.Domain{{ '}}' }}"
-  #
-  #frontEndRule = "Host:{{ '{{' }}.ServiceName{{ '}}' }}.{{ '{{' }}.Domain{{ '}}' }}"
-
-  # Enable Consul catalog TLS connection.
-  #
-  # Optional
-  #
-  #    [consulCatalog.tls]
-  #    ca = "/etc/ssl/ca.crt"
-  #    cert = "/etc/ssl/consul.crt"
-  #    key = "/etc/ssl/consul.key"
-  #    insecureSkipVerify = true
-
-  # Override default configuration template.
-  # For advanced users :)
-  #
-  # Optional
-  #
-  # filename = "consulcatalog.tmpl"
-
-  # Override template version
-  # For advanced users :)
-  #
-  # Optional
-  # - "1": previous template version (must be used only with older custom templates, see "filename")
-  # - "2": current template version (must be used to force template version when "filename" is used)
-  #
-  # templateVersion = 2
-
-################################################################
-# Consul KV Provider
-################################################################
-
-# Enable Consul KV Provider.
-#[consul]
-
-# Consul server endpoint.
-#
-# Required
-# Default: "127.0.0.1:8500"
-#
-#endpoint = "127.0.0.1:8500"
-
-# Enable watch Consul changes.
-#
-# Optional
-# Default: true
-#
-#watch = true
-
-# Prefix used for KV store.
-#
-# Optional
-# Default: traefik
-#
-#prefix = "traefik"
-
-# Override default configuration template.
-# For advanced users :)
-#
-# Optional
-#
-# filename = "consul.tmpl"
-
-# Use Consul user/pass authentication.
-#
-# Optional
-#
-# username = foo
-# password = bar
-
-# Enable Consul TLS connection.
-#
-# Optional
-#
-#    [consul.tls]
-#    ca = "/etc/ssl/ca.crt"
-#    cert = "/etc/ssl/consul.crt"
-#    key = "/etc/ssl/consul.key"
-#    insecureSkipVerify = true
-
-{% if traefik_metrics_influxdb_endpoint is defined and traefik_metrics_influxdb_endpoint != None %}
+{% if traefik_metrics_influxdb_endpoint != None %}
 [metrics]
-  # InfluxDB metrics exporter type
-  [metrics.influxdb]
-    # InfluxDB's address.
-    #
-    # Required
-    # Default: "localhost:8089"
-    #
+  [metrics.influxDB]
     address = "{{ traefik_metrics_influxdb_endpoint | urlsplit('hostname') }}:{{ traefik_metrics_influxdb_endpoint | urlsplit('port') }}"
-
-    # InfluxDB's address protocol (udp or http)
-    #
-    # Required
-    # Default: "udp"
-    #
     protocol = "{{ traefik_metrics_influxdb_endpoint | urlsplit('scheme') }}"
-
-    # InfluxDB push interval
-    #
-    # Optional
-    # Default: "10s"
-    #
-    pushinterval = "{{ traefik_metrics_influxdb_push_interval }}"
+{% if traefik_metrics_influxdb_database != None and traefik_metrics_influxdb_database | length > 0 %}
+    database = "{{ traefik_metrics_influxdb_database }}"
+{% endif %}
+    pushInterval = {{ traefik_metrics_influxdb_pushinterval }}
 {% endif %}

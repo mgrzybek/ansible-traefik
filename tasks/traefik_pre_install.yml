@@ -22,17 +22,12 @@
   when:
     - traefik_entry_points | length == 0
   fail: msg="traefik_entry_points must contain at least one item"
-  
-- name: Check entrypoints
-  when:
-    - traefik_api_entrypoint | length == 0
-  fail: msg="traefik_api_entrypoint is empty"
 
 - name: Set default facts
   set_fact:
     use_firewalld: false
     configure_consul: false
-    
+
 - name: Check running services
   service_facts:
 

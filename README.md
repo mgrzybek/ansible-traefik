@@ -28,23 +28,17 @@ This playbook is standalone.
 Example Playbook
 ----------------
 
-Deploy a non-root running traefik service. The default domain name is 
-`example.com`:
+Deploy a non-root running traefik service:
+
+    - hosts: servers
+      role: ansible-traefik
+
+Deploy a traefik service as a container. Metrics are sent to an InfluxDB v1
+endpoint:
 
     - hosts: servers
       role: ansible-traefik
       vars:
-        # Default domain name
-        traefik_domain_name: example.com
-
-Deploy a traefik service as a container. The default domain name is 
-`example.com` and metrics are sent to an InfluxDB endpoint:
-
-    - hosts: servers
-      role: ansible-traefik
-      vars:
-        # Default domain name
-        traefik_domain_name: example.com
         # Packaging
         traefik_use_docker: true
         # Metrics

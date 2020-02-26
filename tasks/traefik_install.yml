@@ -49,7 +49,8 @@
         - /var/lib/traefik
         - "{{ traefik_cert_directory }}"
 
-- when: traefik_use_docker | lower == 'true'
+- name: Pull docker image
+  when: traefik_use_docker | lower == 'true'
   docker_image:
     name: "{{ traefik_docker_image }}:{{ traefik_docker_tag }}"
 
