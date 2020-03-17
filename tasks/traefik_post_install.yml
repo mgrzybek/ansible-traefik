@@ -16,7 +16,7 @@
       set_fact:
         ports: "{{ traefik_entry_points | json_query('[].address') }}"
         set_cap: false
- 
+
     - name: Loop other the listening ports
       set_fact: set_cap=true
       when: item | regex_replace('^.+?(\d+)$','\1') | int <= 1024
