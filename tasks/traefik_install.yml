@@ -2,7 +2,7 @@
 
 - when: traefik_use_docker | lower == 'false'
   block:
-    - name: Install packages
+    - name: Install | | Install packages
       package:
         name: "{{ traefik_distro_packages }}"
         state: "{{ traefik_package_state }}"
@@ -17,11 +17,11 @@
         - install-yum
         - install-zypper
 
-    - name: Get traefik binary
+    - name: Install | | Get traefik binary
       when:
         - traefik_bin_version.stdout|default('') != traefik_version
       block:
-        - name: Get traefik (version {{ traefik_version }})
+        - name: Install | | Get traefik (version {{ traefik_version }})
           get_url:
             url: "{{ traefik_repo_url }}/v{{ traefik_version }}/traefik_v{{ traefik_version }}_linux_amd64.tar.gz"
             dest: "/tmp/traefik_bin.tar.gz"
@@ -29,27 +29,27 @@
           environment:
             https_proxy: "{{ traefik_http_proxy }}"
 
-        - name: Install binary
+        - name: Install | | Install binary
           unarchive: src="/tmp/traefik_bin.tar.gz" dest={{ traefik_install_prefix }}  mode=0755 copy=no
           notify:
              - restart traefik service
              - restart traefik resource
 
-        - name: Cleanup file
+        - name: Install | | Cleanup file
           file: path=/tmp/traefik_bin.tar.gz state=absent
 
-    - name: Service systemd
+    - name: Install | | Service systemd
       template: src=traefik.service.j2 dest=/etc/systemd/system/traefik.service
       notify: reload systemd
 
-    - name: Configuration repertoires
+    - name: Install | | Configuration repertoires
       file: path={{ item }} state=directory owner="{{ traefik_user }}" recurse=yes
       with_items:
     #    - /etc/traefik.d
         - /var/lib/traefik
         - "{{ traefik_cert_directory }}"
 
-- name: Pull docker image
+- name: Install | | Pull docker image
   when: traefik_use_docker | lower == 'true'
   docker_image:
     name: "{{ traefik_docker_image }}:{{ traefik_docker_tag }}"
