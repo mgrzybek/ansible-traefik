@@ -1,44 +1,44 @@
 ---
 
-- name: Post-Install | | Traefik toml file
+- name: Post-Install | Traefik toml file
   template: src=traefik.toml.j2 dest={{ traefik_conf_file }} mode=0644
   register: traefik_conf_state
   notify:
     - restart traefik service
     - restart traefik resource
 
-- name: Post-Install | | Manage non-root traefik user
+- name: Post-Install | Manage non-root traefik user
   when:
     - traefik_user != 'root'
     - traefik_use_docker | lower == 'false'
   block:
-    - name: Post-Install | | Get listening ports
+    - name: Post-Install | Get listening ports
       set_fact:
         ports: "{{ traefik_entry_points | json_query('[].address') }}"
         set_cap: false
 
-    - name: Post-Install | | Loop other the listening ports
+    - name: Post-Install | Loop other the listening ports
       set_fact: set_cap=true
       when: item | regex_replace('^.+?(\d+)$','\1') | int <= 1024
       with_items: "{{ ports }}"
 
-    - name: Post-Install | | Allow {{ traefik_user }} to bind privileged ports
+    - name: Post-Install | Allow {{ traefik_user }} to bind privileged ports
       when: set_cap | lower == 'true'
       command: setcap CAP_NET_BIND_SERVICE=+eip {{ traefik_install_prefix }}/traefik
 
-- name: Post-Install | | Consul service definition
+- name: Post-Install | Consul service definition
   when:
     - configure_consul | lower == 'true'
   template: src=service.consul.json.j2 dest={{ traefik_consul_services_path }}/{{ item.service.name }}.json
   with_items: "{{ traefik_consul }}"
   notify: reload consul
 
-- name: Post-Install | | (Re)start docker
+- name: Post-Install | (Re)start docker
   when:
     - traefik_cluster_aware | lower == 'false'
     - traefik_use_docker | lower == 'true'
   block:
-    - name: Post-Install | | Start the container
+    - name: Post-Install | Start the container
       docker_container:
         state: started
         name: "{{ traefik_container_name }}"

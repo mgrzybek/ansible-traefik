@@ -2,13 +2,13 @@
 
 # TODO: check traefik_http_proxy variable
 
-- name: Pre-Install | | Check consul service data
+- name: Pre-Install | Check consul service data
   when:
     - traefik_consul == None
     - traefik_config_consul | lower == 'true'
   fail: msg="traefik_consul should be given"
 
-- name: Pre-Install | | Check influxdb endpoint
+- name: Pre-Install | Check influxdb endpoint
   when:
     - traefik_metrics_influxdb_endpoint is defined
     - traefik_metrics_influxdb_endpoint != None
@@ -18,39 +18,39 @@
     - traefik_metrics_influxdb_endpoint | urlsplit('port') is undefined
   fail: msg="traefik_metrics_influxdb_endpoint must be a URL (http://endpoint:port or udp://endpoint:port)"
 
-- name: Pre-Install | | Check entrypoints
+- name: Pre-Install | Check entrypoints
   when:
     - traefik_entry_points | length == 0
   fail: msg="traefik_entry_points must contain at least one item"
 
-- name: Pre-Install | | Set default facts
+- name: Pre-Install | Set default facts
   set_fact:
     use_firewalld: false
     configure_consul: false
 
-- name: Pre-Install | | Check running services
+- name: Pre-Install | Check running services
   service_facts:
 
 - when:
     - traefik_config_consul | lower == 'true'
     - ansible_facts.services | map('quote') | join(',') | regex_search('consul')
   block:
-    - name: Pre-Install | | Get Consul service details
+    - name: Pre-Install | Get Consul service details
       systemd: name=consul
       register: consul_systemd
 
-    - name: Pre-Install | | Set Consul facts
+    - name: Pre-Install | Set Consul facts
       set_fact:
         consul_bin: "{{ consul_systemd.status.ExecStart | regex_replace('^.+path=(.+?)\\s+.+?$','\\1') }}"
         configure_consul: true
 
 - when: traefik_use_docker | lower == 'false'
   block:
-    - name: Pre-Install | | Check traefik binary
+    - name: Pre-Install | Check traefik binary
       register: traefik_bin_stats
       stat: path={{ traefik_install_prefix }}/traefik get_checksum=no
 
-    - name: Pre-Install | | Check traefik version
+    - name: Pre-Install | Check traefik version
       when:
         - traefik_bin_stats.stat.exists
       register: traefik_bin_version
@@ -58,10 +58,10 @@
         "{{ traefik_install_prefix }}"/traefik version \
         | awk '/^Version/ {print $2}'
 
-    - name: Pre-Install | | Set the version to use
+    - name: Pre-Install | Set the version to use
       when: traefik_package_state == 'latest'
       block:
-        - name: Pre-Install | | Get last version online
+        - name: Pre-Install | Get last version online
           register: last_version
           run_once: true
           shell: >
@@ -74,11 +74,11 @@
 
         - set_fact: traefik_version="{{ last_version.stdout }}"
 
-    - name: Pre-Install | | Manage non-root traefik user
+    - name: Pre-Install | Manage non-root traefik user
       when:
         - traefik_user != 'root'
       block:
-        - name: Pre-Install | | Add the user {{ traefik_user }}
+        - name: Pre-Install | Add the user {{ traefik_user }}
           user:
             name: "{{ traefik_user }}"
             comment: "Traefik daemon user"
